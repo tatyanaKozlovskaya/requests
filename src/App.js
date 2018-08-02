@@ -58,7 +58,6 @@ class App extends Component {
       if (request.readyState === XMLHttpRequest.DONE) {
         if (request.status === 200) {
           const answer = JSON.parse(request.responseText);
-          console.log(answer)
           this.setState({
             peoples: answer
           })
@@ -71,7 +70,6 @@ class App extends Component {
     request.open('GET', 'names.json', false);
     request.send();
 
-    console.log(request)
     return request;
   }
 
