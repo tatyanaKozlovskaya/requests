@@ -19,6 +19,7 @@
   width: 500px;
   margin: 0 auto;
   text-align: left;
+  flex-wrap: wrap;
   &__item{
     padding: 20px 20px;
     display: flex;

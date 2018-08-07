@@ -22,8 +22,9 @@ class App extends Component {
     const method = e.target.dataset.method;
     if (method) {
       switch (method) {
-        case 'ajax':
-          this.createRequest();
+        case 'ajaxget':
+        case 'ajaxpost':
+          this.createRequest(method);
           break;
         case 'fetch':
           console.log('fetch')
@@ -35,12 +36,14 @@ class App extends Component {
     }
   }
 
-  createRequest = () => {
+  createRequest = (method) => {
     let request = false;
 
     if (window.XMLHttpRequest) {
       //Gecko-совместимые браузеры, Safari, Konqueror
       request = new XMLHttpRequest();
+      request.overrideMimeType('text/xml');
+
     } else if (window.ActiveXObject) {
       //Internet explorer
       try {
@@ -54,10 +57,43 @@ class App extends Component {
     if (!request) {
       console.log('Невозможно создать XMLHttpRequest');
     }
-    const showContents = () => {
-      if (request.readyState === XMLHttpRequest.DONE) {
+
+    request.onreadystatechange = this.showContents;
+
+    if (method === 'ajaxget') {
+      this.sendGETRequest(request)
+    } else if (method === 'ajaxpost') {
+      this.sendPOSTRequest(request)
+    }
+
+
+    return request;
+  }
+
+  sendGETRequest = (request) => {
+    request.open('GET','names.json', true);
+    request.send();
+  }
+
+  sendPOSTRequest = (request) => {
+    request.open('POST','names.json', true);
+    request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    request.send(null);
+   
+  }
+
+  showContents = (e) => {
+    const request = e.currentTarget;
+    try {
+      
+      if (request.readyState == 4) {
+        console.log(request)
+        console.log(e)
         if (request.status === 200) {
+
+          console.log(request)
           const answer = JSON.parse(request.responseText);
+          console.log(answer)
           this.setState({
             peoples: answer
           })
@@ -66,11 +102,9 @@ class App extends Component {
         }
       }
     }
-    request.onreadystatechange = showContents;
-    request.open('GET', 'names.json', false);
-    request.send();
-
-    return request;
+    catch (e) {
+      console.log(e.description)
+    }
   }
 
 
@@ -83,7 +117,8 @@ class App extends Component {
           Запросы
         </header>
         <div className='btn-wrapper'>
-          <div data-method='ajax' className='request-btn request-btn_active'>AJAX</div>
+          <div data-method='ajaxget' className='request-btn request-btn_active'>AJAX GET</div>
+          <div data-method='ajaxpost' className='request-btn request-btn_active'>AJAX POST</div>
           <div data-method='fetch' className='request-btn '>fetch</div>
           <div data-method='webSocket' className='request-btn'>WebSocket</div>
         </div>
