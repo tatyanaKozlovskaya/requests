@@ -27,7 +27,7 @@ class App extends Component {
           this.createRequest(method);
           break;
         case 'fetch':
-          console.log('fetch')
+          this.sendFetchRequest();
           break;
         case 'webSocket':
           console.log('webSocket')
@@ -71,21 +71,29 @@ class App extends Component {
   }
 
   sendGETRequest = (request) => {
-    request.open('GET','names.json', true);
+    request.open('GET', 'names.json', true);
     request.send();
   }
 
   sendPOSTRequest = (request) => {
-    request.open('POST','names.json', true);
+    request.open('POST', '/names', true);
     request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
     request.send(null);
-   
+  }
+
+  sendFetchRequest = () => {
+    fetch('/names')
+      .then(res => {
+        return res.json()
+      })
+      .then(users => this.setState({ peoples: users }, console.log(users)));
+
   }
 
   showContents = (e) => {
     const request = e.currentTarget;
     try {
-      
+
       if (request.readyState == 4) {
         console.log(request)
         console.log(e)
@@ -119,11 +127,11 @@ class App extends Component {
         <div className='btn-wrapper'>
           <div data-method='ajaxget' className='request-btn request-btn_active'>AJAX GET</div>
           <div data-method='ajaxpost' className='request-btn request-btn_active'>AJAX POST</div>
-          <div data-method='fetch' className='request-btn '>fetch</div>
+          <div data-method='fetch' className='request-btn request-btn_active'>fetch</div>
           <div data-method='webSocket' className='request-btn'>WebSocket</div>
         </div>
 
-        {peoples.length !== 0 &&
+        {peoples && peoples.length !== 0 &&
           <div className='content'>
             <div>Получена информация:</div>
             {peoples.map((el, index) => {
