@@ -15,7 +15,9 @@ var getKey = (() => {
 class App extends Component {
 
   state = {
-    peoples: []
+    peoples: [],
+    websocketData: '',
+    websocketMessage: ''
   }
 
   clickHandler = (e) => {
@@ -30,7 +32,7 @@ class App extends Component {
           this.sendFetchRequest();
           break;
         case 'webSocket':
-          console.log('webSocket')
+          this.openWebSocket();
           break;
       }
     }
@@ -87,7 +89,55 @@ class App extends Component {
         return res.json()
       })
       .then(users => this.setState({ peoples: users }, console.log(users)));
+  }
 
+  openWebSocket = () => {
+    const wsUri = "wss://echo.websocket.org/";
+    const websocket = new WebSocket(wsUri);
+    websocket.onopen = (e) => {
+      this.setState({
+        websocket: websocket,
+        websocketData: 'открыт websocket!',
+        websocketIsOpen: true
+      })
+
+      // websocket.send('Привет от websocket');
+    };
+    websocket.onclose = (e) => {
+      this.setState({
+        websocketData: 'websocket закрыт!'
+      })
+    };
+    websocket.onmessage = (e) => {
+      this.setState({
+        websocketData: e.data
+      })
+    };
+    websocket.onerror = (e) => {
+      this.setState({
+        websocketData: 'error: ' + e.data
+      })
+    };
+  }
+
+  saveMessage = (e) => {
+    const msg = e.target.value
+    this.setState({
+      websocketMessage: msg
+    })
+  }
+
+  sendMessageWebsocket = (e) => {
+    const msg = this.state.websocketMessage;
+    if (!this.state.websocket) return
+    this.state.websocket.send(msg)
+    this.setState({
+      websocketMessage: ''
+    })
+  }
+
+  closeWebsocket = () => {
+    this.state.websocket.close()
   }
 
   showContents = (e) => {
@@ -118,7 +168,7 @@ class App extends Component {
 
 
   render() {
-    const { peoples } = this.state
+    const { peoples, websocketData, websocketMessage } = this.state
     return (
       <div className="App" onClick={this.clickHandler}>
         <header className="App-header">
@@ -128,7 +178,7 @@ class App extends Component {
           <div data-method='ajaxget' className='request-btn request-btn_active'>AJAX GET</div>
           <div data-method='ajaxpost' className='request-btn request-btn_active'>AJAX POST</div>
           <div data-method='fetch' className='request-btn request-btn_active'>fetch</div>
-          <div data-method='webSocket' className='request-btn'>WebSocket</div>
+          <div data-method='webSocket' className='request-btn request-btn_active'>WebSocket</div>
         </div>
 
         {peoples && peoples.length !== 0 &&
@@ -137,6 +187,16 @@ class App extends Component {
             {peoples.map((el, index) => {
               return <div className='content__item' key={getKey()}>{`Имя: ${el.name}, возраст: ${el.age}, любимый цвет: ${el.color}`}</div>
             })}
+          </div>
+        }
+
+        {websocketData &&
+          <div className='websocket'>
+            <div className='websocket__title'>WEBSOCKET</div>
+            <div className='websocket__data'>{websocketData}</div>
+            <input placeholder='введите сообщение' value={websocketMessage} onChange={this.saveMessage}></input>
+            <button onClick={this.sendMessageWebsocket}>Отправить</button>
+            <button onClick={this.closeWebsocket}>Закрыть websocket</button>
           </div>
         }
 
